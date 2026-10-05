@@ -1,9 +1,26 @@
 import sqlite3
+import time
 from pathlib import Path
 
 from sqlalchemy import URL, Connection, Engine, create_engine, event
 
 from cache_service.models import Base
+
+
+def enable_wal(cursor: sqlite3.Cursor, timeout: float) -> None:
+    deadline = time.monotonic() + timeout
+    while True:
+        try:
+            cursor.execute("PRAGMA journal_mode=WAL")
+            return
+        except sqlite3.OperationalError as exc:
+            remaining = deadline - time.monotonic()
+            code = getattr(exc, "sqlite_errorcode", 0) & 0xFF
+            if code not in (sqlite3.SQLITE_BUSY, sqlite3.SQLITE_LOCKED) or remaining <= 0:
+                raise
+            # Concurrent first connections can race to switch journal mode. That
+            # lock upgrade may bypass SQLite's busy timeout, so retry explicitly.
+            time.sleep(min(0.01, remaining))
 
 
 def create_database(data_dir: Path, timeout: float) -> Engine:
@@ -19,7 +36,7 @@ def create_database(data_dir: Path, timeout: float) -> Engine:
         connection.isolation_level = None
         cursor = connection.cursor()
         try:
-            cursor.execute("PRAGMA journal_mode=WAL")
+            enable_wal(cursor, timeout)
             cursor.execute("PRAGMA foreign_keys=ON")
         finally:
             cursor.close()

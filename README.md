@@ -144,8 +144,9 @@ file is overwritten, and completed iterations remain available if a later one fa
    keys. Preserve every occurrence and its position in the final output.
 2. Reserve SQLite's writer lock **before** checking misses, using `BEGIN IMMEDIATE`.
    This prevents duplicate calls across threads and independent worker processes
-   sharing the same database. Schema creation uses the same lock. WAL allows reads
-   to continue while a creator is working.
+   sharing the same database. Schema creation uses the same lock. Initial WAL setup
+   retries transient contention within the configured timeout. WAL allows reads to
+   continue while a creator is working.
 3. Hash the canonical UTF-8 JSON output using SHA-256. Identical generated payloads
    share an identifier, even when different inputs produce the same output. Database
    primary keys enforce uniqueness; identifiers are independent of request timing.
