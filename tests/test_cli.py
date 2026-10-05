@@ -34,6 +34,7 @@ def test_pydantic_settings_parses_short_options() -> None:
         ["--host", "http://localhost/?q=1"],
         ["--host", "http://user:password@localhost"],
         ["-i", "-", "-j", json.dumps(BODY)],
+        ["-j", "null"],
         ["-o", ""],
     ],
 )
@@ -100,6 +101,8 @@ def test_main_rejects_invalid_input_before_network(capsys: pytest.CaptureFixture
     assert "same length" in capsys.readouterr().err
     assert cli.main(["--unknown"]) == 2
     assert "unrecognized arguments" in capsys.readouterr().err
+    assert cli.main(["-j", "null"]) == 2
+    assert "must not be null" in capsys.readouterr().err
 
 
 def test_main_reports_http_failure(

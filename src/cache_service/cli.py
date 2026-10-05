@@ -66,6 +66,9 @@ class CliSettings(BaseSettings):
 
     @model_validator(mode="after")
     def sanitize_options(self) -> Self:
+        for field in ("input_file", "json_input"):
+            if field in self.model_fields_set and getattr(self, field) is None:
+                raise ValueError("Explicit input options must not be null")
         if self.input_file is not None and self.json_input is not None:
             raise ValueError("--input and --json are mutually exclusive")
         if self.host.query or self.host.fragment or self.host.username or self.host.password:

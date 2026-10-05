@@ -32,7 +32,9 @@ def create_database(data_dir: Path, timeout: float) -> Engine:
         connection.exec_driver_sql(f"BEGIN {mode}")
 
     try:
-        Base.metadata.create_all(engine)
+        # Coordinate first startup too: workers must not race to create tables.
+        with engine.execution_options(cache_writer=True).begin() as connection:
+            Base.metadata.create_all(connection)
     except Exception:
         engine.dispose()
         raise

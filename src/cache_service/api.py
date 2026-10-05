@@ -54,7 +54,12 @@ def create_app(settings: Settings | None = None, transformer: Transformer = uppe
             headers={"Retry-After": "1"},
         )
 
-    @app.post("/payload", response_model=PayloadCreated, status_code=status.HTTP_201_CREATED)
+    @app.post(
+        "/payload",
+        response_model=PayloadCreated,
+        status_code=status.HTTP_201_CREATED,
+        responses={200: {"model": PayloadCreated, "description": "Existing payload reused"}},
+    )
     def create_payload(body: PayloadInput, response: Response, service: Service) -> PayloadCreated:
         try:
             payload = service.create(body)
