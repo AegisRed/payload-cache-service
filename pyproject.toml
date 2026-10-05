@@ -15,6 +15,9 @@ dependencies = [
     "uvicorn>=0.34,<1",
 ]
 
+[project.scripts]
+cache-cli = "cache_service.cli:main"
+
 [dependency-groups]
 dev = [
     "pytest>=8.3,<10",
