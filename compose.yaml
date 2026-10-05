@@ -1,0 +1,16 @@
+services:
+  api:
+    build: .
+    image: payload-cache-service:local
+    ports:
+      - "127.0.0.1:${CACHE_PORT:-8000}:8000"
+    environment:
+      CACHE_DATA_DIR: /data
+      CACHE_SQLITE_TIMEOUT: "${CACHE_SQLITE_TIMEOUT:-30}"
+      CACHE_TRANSFORMER_VERSION: "${CACHE_TRANSFORMER_VERSION:-uppercase-v1}"
+    volumes:
+      - cache-data:/data
+    restart: unless-stopped
+
+volumes:
+  cache-data:

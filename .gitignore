@@ -20,3 +20,4 @@ data/
 .idea/
 .vscode/
 *.log
+results.jsonl
